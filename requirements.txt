@@ -1,0 +1,4 @@
+firecrawl-py
+pandas
+openpyxl
+pydantic
