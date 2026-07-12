@@ -2,6 +2,7 @@ import os
 import smtplib
 from datetime import datetime
 from email.message import EmailMessage
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -71,6 +72,45 @@ def bugunun_menusunu_bul(menu: list[dict]) -> dict | None:
     )
 
 
+def excelden_oku(dosya: Path) -> list[dict]:
+    tablo = pd.read_excel(dosya, dtype=str).fillna("")
+    gerekli = {"Tarih", "Gün", "Yemekler", "Kalori"}
+    if tablo.empty or not gerekli.issubset(tablo.columns):
+        return []
+    menu = []
+    for _, satir in tablo.iterrows():
+        menu.append({
+            "tarih": satir["Tarih"].strip(),
+            "gun": satir["Gün"].strip(),
+            "yemekler": [x.strip() for x in satir["Yemekler"].splitlines() if x.strip()],
+            "kalori": satir["Kalori"].strip(),
+        })
+    return menu
+
+
+def son_exceli_bul(arsiv: Path) -> Path | None:
+    dosyalar = sorted(arsiv.glob("*.xlsx"), reverse=True)
+    for dosya in dosyalar:
+        if excelden_oku(dosya):
+            return dosya
+    return None
+
+
+def aya_ait_gecerli_mi(menu: list[dict], simdi: datetime) -> bool:
+    if not menu:
+        return False
+    tarih_bicimleri = ("%d.%m.%Y", "%d/%m/%Y", "%Y-%m-%d", "%d.%m.%y")
+    for kayit in menu:
+        for bicim in tarih_bicimleri:
+            try:
+                tarih = datetime.strptime(str(kayit.get("tarih", "")).strip(), bicim)
+                if tarih.year == simdi.year and tarih.month == simdi.month:
+                    return True
+            except ValueError:
+                continue
+    return False
+
+
 def excel_olustur(menu: list[dict], dosya: str) -> None:
     satirlar = []
     for kayit in menu:
@@ -123,8 +163,30 @@ def mail_gonder(bugun: dict | None, excel: str) -> None:
 
 
 if __name__ == "__main__":
-    menu = menu_verisini_al()
-    dosya = "maltepe_yemek_listesi.xlsx"
-    excel_olustur(menu, dosya)
-    mail_gonder(bugunun_menusunu_bul(menu), dosya)
+    simdi = datetime.now(TZ)
+    arsiv = Path("menu-arsivi")
+    arsiv.mkdir(exist_ok=True)
+    dosya = arsiv / f"{simdi:%Y-%m}.xlsx"
+
+    menu = excelden_oku(dosya) if dosya.exists() else []
+    mail_dosyasi = dosya
+    if aya_ait_gecerli_mi(menu, simdi):
+        print(f"Kayıtlı aylık liste kullanılıyor: {dosya}")
+    else:
+        print("Bu aya ait geçerli liste yok; Firecrawl ile kontrol ediliyor.")
+        yeni_menu = menu_verisini_al()
+        if aya_ait_gecerli_mi(yeni_menu, simdi):
+            menu = yeni_menu
+            excel_olustur(menu, str(dosya))
+            print(f"Yeni aylık liste kaydedildi: {dosya}")
+        else:
+            print("Sitede bu aya ait dolu yemek listesi henüz bulunamadı.")
+            son_dosya = son_exceli_bul(arsiv)
+            if not son_dosya:
+                raise RuntimeError("Gönderilecek kayıtlı yemek listesi bulunamadı.")
+            menu = excelden_oku(son_dosya)
+            mail_dosyasi = son_dosya
+            print(f"En son kayıtlı listeyle devam ediliyor: {son_dosya}")
+
+    mail_gonder(bugunun_menusunu_bul(menu), str(mail_dosyasi))
     print("Yemek listesi e-postası gönderildi.")
