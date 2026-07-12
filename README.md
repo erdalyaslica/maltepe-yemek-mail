@@ -17,10 +17,6 @@ devam eder.
 Repository > Settings > Secrets and variables > Actions > New repository secret
 alanından şu dört secret eklenmelidir:
 
-- `FIRECRAWL_API_KEY`: `fc-...` ile başlayan Firecrawl anahtarı
-- `GMAIL_ADDRESS`: `eyaslica@gmail.com`
-- `GMAIL_APP_PASSWORD`: Google hesabından oluşturulan 16 karakterli uygulama şifresi
-- `MAIL_TO`: `erdalyaslica@maltepe.edu.tr`
 
 Normal Gmail parolası kesinlikle kullanılmamalıdır.
 
