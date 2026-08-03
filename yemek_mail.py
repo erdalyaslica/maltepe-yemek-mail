@@ -12,7 +12,7 @@ from firecrawl import Firecrawl
 from pydantic import BaseModel, Field
 
 
-URL = "https://www.maltepe.edu.tr/sks/tr/yemek-lstesi"
+URL = "https://www.maltepe.edu.tr/sks/tr/yemek-listesi"
 TZ = ZoneInfo("Europe/Istanbul")
 TARIH_BICIMLERI = ("%d.%m.%Y", "%d/%m/%Y", "%Y-%m-%d", "%d.%m.%y")
 GUN_ADLARI = {
