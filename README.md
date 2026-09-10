@@ -19,8 +19,14 @@ devam eder.
 ## GitHub Secrets
 
 Repository > Settings > Secrets and variables > Actions > New repository secret
-alanından şu dört secret eklenmelidir:
+alanından şu altı secret eklenmelidir:
 
+- `FIRECRAWL_API_KEY`
+- `GMAIL_ADDRESS`
+- `GMAIL_APP_PASSWORD`
+- `MAIL_TO`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
 
 ## İlk test
 
@@ -28,7 +34,9 @@ GitHub deposunda Actions > Günlük yemek menüsü > Run workflow seçilir. Baş
 olursa sonraki çalıştırmalar hafta içi otomatik gerçekleşir.
 
 İlk başarılı çalıştırmadan sonra depoda `menu-arsivi` klasörünün ve güncel aya
-ait Excel'in oluştuğu kontrol edilebilir.
+ait Excel'in oluştuğu kontrol edilebilir. Telegram için `Telegram yemek botu`
+workflow'u elle çalıştırılabilir; daha sonra bot yaklaşık 10 dakikada bir gelen
+komutları kontrol eder.
 
 ## Zamanlama
 
