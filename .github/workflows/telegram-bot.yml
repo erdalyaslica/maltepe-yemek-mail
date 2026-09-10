@@ -42,7 +42,7 @@ jobs:
             git add menu-arsivi/ telegram-offset.txt
             git commit -m "Telegram bot durumunu güncelle"
             # Workflow dosyası güncellenirken oluşabilecek yarış koşulunu çöz.
-            git pull --rebase origin main
+            git pull --rebase -X theirs origin main
             git push
           else
             echo "Kaydedilecek Telegram bot durumu yok."
