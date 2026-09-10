@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 from firecrawl import Firecrawl
 from pydantic import BaseModel, Field
+from telegram_utils import telegram_menu_mesaji, telegram_mesaj_gonder
 
 
 URL = "https://www.maltepe.edu.tr/sks/tr/yemek-listesi"
@@ -276,6 +277,26 @@ def mail_gonder(menu: list[dict], excel: str) -> None:
         smtp.send_message(mesaj)
 
 
+def telegram_gunluk_gonder(menu: list[dict], simdi: datetime) -> None:
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    if not token or not chat_id:
+        print("Telegram secret'ları eksik; Telegram gönderimi atlandı.")
+        return
+
+    baslangic, bitis, _, _ = mail_araligini_bul(simdi)
+    secilenler = araliktaki_menuleri_bul(menu, baslangic, bitis)
+    if not secilenler:
+        telegram_mesaj_gonder(
+            chat_id,
+            f"ℹ️ <b>{baslangic:%d.%m.%Y} - {bitis:%d.%m.%Y}</b> aralığı için menü bulunamadı.",
+        )
+        return
+
+    for kayit in secilenler:
+        telegram_mesaj_gonder(chat_id, telegram_menu_mesaji(kayit))
+
+
 if __name__ == "__main__":
     simdi = datetime.now(TZ)
     arsiv = Path("menu-arsivi")
@@ -303,4 +324,5 @@ if __name__ == "__main__":
             print(f"En son kayıtlı listeyle devam ediliyor: {son_dosya}")
 
     mail_gonder(menu, str(mail_dosyasi))
-    print("Yemek listesi e-postası gönderildi.")
+    telegram_gunluk_gonder(menu, simdi)
+    print("Yemek listesi e-postası ve Telegram bildirimi gönderildi.")
