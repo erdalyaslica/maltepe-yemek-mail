@@ -1,0 +1,47 @@
+name: Telegram yemek botu
+
+on:
+  schedule:
+    # GitHub Actions birkaç dakika gecikebilir; komutlar yaklaşık 10 dakika içinde işlenir.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: maltepe-yemek-mail-writes
+  cancel-in-progress: false
+
+jobs:
+  telegram-komutlarini-isle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Telegram komutlarını kontrol et
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python telegram_bot.py
+
+      - name: Bot durumunu ve yeni menüyü kaydet
+        run: |
+          if [[ -n "$(git status --porcelain -- menu-arsivi/ telegram-offset.txt)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add menu-arsivi/ telegram-offset.txt
+            git commit -m "Telegram bot durumunu güncelle"
+            git push
+          else
+            echo "Kaydedilecek Telegram bot durumu yok."
+          fi
