@@ -6,6 +6,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from telegram_utils import (
+    telegram_bilgilerini_al,
     telegram_guncellemelerini_al,
     telegram_menu_mesaji,
     telegram_mesaj_gonder,
@@ -131,6 +132,8 @@ def main() -> None:
         raise RuntimeError("TELEGRAM_CHAT_ID secret tanımlı değil.")
 
     simdi = datetime.now(TZ)
+    bot = telegram_bilgilerini_al()
+    print(f"Telegram botu: @{bot.get('username', 'kullanıcı adı alınamadı')}")
     telegram_webhook_kaldir()
     updates = telegram_guncellemelerini_al(kayitli_offseti_oku())
     if not updates:
