@@ -34,3 +34,22 @@ ait Excel'in oluştuğu kontrol edilebilir.
 
 GitHub cron zamanları UTC'dir. Türkiye saati yıl boyunca UTC+3 olduğundan
 `0 7 * * *`, her gün 10.00 anlamına gelir.
+
+
+## Telegram
+
+Günlük menü e-postaya ek olarak Telegram'a da gönderilir. Telegram botu yaklaşık
+10 dakikada bir kontrol edilir; aşağıdaki komutlar desteklenir:
+
+- `/bugün` veya `/bugun`
+- `/yarın` veya `/yarin`
+- `/hafta`
+- `/test`
+- `/yardım`
+
+Telegram için Actions secrets alanına şu iki secret eklenmelidir:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+
+Bot yalnızca `TELEGRAM_CHAT_ID` ile belirtilen sohbete yanıt verir.
