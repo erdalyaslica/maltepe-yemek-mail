@@ -51,6 +51,10 @@ def telegram_api(method: str, payload: dict | None = None):
     return result.get("result")
 
 
+def telegram_bilgilerini_al() -> dict:
+    return telegram_api("getMe") or {}
+
+
 def telegram_mesaj_gonder(chat_id: str, text: str):
     return telegram_api(
         "sendMessage",
