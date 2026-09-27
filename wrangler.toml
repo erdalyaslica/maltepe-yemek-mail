@@ -1,0 +1,4 @@
+name = "maltepe-yemek-mail"
+main = "cloudflare/worker.js"
+compatibility_date = "2026-09-26"
+workers_dev = true
