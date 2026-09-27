@@ -6,11 +6,11 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from telegram_utils import (
+    telegram_api,
     telegram_bilgilerini_al,
     telegram_guncellemelerini_al,
     telegram_menu_mesaji,
     telegram_mesaj_gonder,
-    telegram_webhook_kaldir,
     telegram_yardim_mesaji,
 )
 from yemek_mail import (
@@ -131,10 +131,13 @@ def main() -> None:
     if not izinli_chat_id:
         raise RuntimeError("TELEGRAM_CHAT_ID secret tanımlı değil.")
 
+    if (telegram_api("getWebhookInfo") or {}).get("url"):
+        print("Webhook etkin; eski sorgulama atlandı.")
+        return
+
     simdi = datetime.now(TZ)
     bot = telegram_bilgilerini_al()
     print(f"Telegram botu: @{bot.get('username', 'kullanıcı adı alınamadı')}")
-    telegram_webhook_kaldir()
     updates = telegram_guncellemelerini_al(kayitli_offseti_oku())
     if not updates:
         print("Bekleyen Telegram komutu yok.")
