@@ -120,3 +120,27 @@ def telegram_yardim_mesaji() -> str:
         "/hafta — Haftanın menüsü\n"
         "/test — Sistem testi"
     )
+
+
+def telegram_menuleri_gonder(chat_id: str, menu: list[dict]) -> None:
+    """Günleri tek mesajda toplar; uzun devam parçaları sessiz gönderilir."""
+    blocks = []
+    for kayit in menu:
+        tarih = kayit.get("_tarih") or tarihi_coz(str(kayit.get("tarih", "")))
+        label = (tarih.strftime("%d.%m.%Y") + " " + GUN_ADLARI[tarih.weekday()]) if tarih else str(kayit.get("tarih", ""))
+        lines = ["🍽️ " + label]
+        lines.extend("▪️ " + str(y) for y in kayit.get("yemekler", []))
+        if not kayit.get("yemekler"):
+            lines.append("Menü bilgisi henüz yok.")
+        if kayit.get("kalori"):
+            lines.append("Kalori: " + str(kayit["kalori"]))
+        blocks.append("\n".join(lines))
+    text = "\n\n".join(blocks) + "\n\n" + MENU_URL
+    # 1800 Unicode karakter, en kötü durumda 3600 UTF-16 birimi.
+    for index, start in enumerate(range(0, len(text), 1800)):
+        telegram_api("sendMessage", {
+            "chat_id": str(chat_id),
+            "text": text[start:start + 1800],
+            "disable_web_page_preview": True,
+            "disable_notification": index > 0,
+        })
