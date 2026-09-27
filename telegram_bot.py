@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -10,6 +11,7 @@ from telegram_utils import (
     telegram_bilgilerini_al,
     telegram_guncellemelerini_al,
     telegram_menu_mesaji,
+    telegram_menuleri_gonder,
     telegram_mesaj_gonder,
     telegram_yardim_mesaji,
 )
@@ -92,8 +94,11 @@ def haftanin_menusunu_gonder(menu: list[dict], chat_id: str, simdi: datetime) ->
             f"ℹ️ <b>{baslangic:%d.%m.%Y} - {bitis:%d.%m.%Y}</b> aralığı için menü bulunamadı.",
         )
         return
-    for kayit in secilenler:
-        telegram_mesaj_gonder(chat_id, telegram_menu_mesaji(kayit))
+    by_date = {kayit["_tarih"]: kayit for kayit in secilenler}
+    hafta = [by_date.get(baslangic + timedelta(days=i), {
+        "_tarih": baslangic + timedelta(days=i), "yemekler": []
+    }) for i in range(5)]
+    telegram_menuleri_gonder(chat_id, hafta)
 
 
 def komutu_isle(message: dict, menu: list[dict], simdi: datetime, izinli_chat_id: str) -> None:
@@ -107,7 +112,7 @@ def komutu_isle(message: dict, menu: list[dict], simdi: datetime, izinli_chat_id
     if not text:
         return
 
-    komut = text.split()[0].split("@")[0].lower()
+    komut = re.sub(r"^/\s+", "/", text).split()[0].split("@")[0].lower()
     if komut in {"/start", "/yardım", "/yardim", "/help"}:
         telegram_mesaj_gonder(chat_id, telegram_yardim_mesaji())
     elif komut in {"/bugün", "/bugun"}:
