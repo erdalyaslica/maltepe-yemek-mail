@@ -1,9 +1,6 @@
 name: Telegram yemek botu
 
 on:
-  schedule:
-    # Her 5 dakikada kontrol planlanır; GitHub yoğunluğunda gecikebilir.
-    - cron: "2-59/5 * * * *"
   workflow_dispatch:
 
 permissions:
