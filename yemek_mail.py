@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 from firecrawl import Firecrawl
 from pydantic import BaseModel, Field
-from telegram_utils import telegram_menu_mesaji, telegram_mesaj_gonder
+from telegram_utils import telegram_menu_mesaji, telegram_mesaj_gonder, telegram_menuleri_gonder
 
 
 URL = "https://www.maltepe.edu.tr/sks/tr/yemek-listesi"
@@ -293,8 +293,7 @@ def telegram_gunluk_gonder(menu: list[dict], simdi: datetime) -> None:
         )
         return
 
-    for kayit in secilenler:
-        telegram_mesaj_gonder(chat_id, telegram_menu_mesaji(kayit))
+    telegram_menuleri_gonder(chat_id, secilenler)
 
 
 if __name__ == "__main__":
