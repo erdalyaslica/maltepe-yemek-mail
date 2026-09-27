@@ -7,7 +7,7 @@ async function send(env, text) {
   if (!r.ok || !(await r.json()).ok) throw new Error("Telegram gönderimi başarısız");
 }
 export function command(text) {
-  return String(text || "").trim().split(/\s+/)[0].split("@")[0].toLocaleLowerCase("tr");
+  return String(text || "").trim().replace(/^\/\s+/, "/").split(/\s+/)[0].split("@")[0].toLocaleLowerCase("tr");
 }
 export default {
   async fetch(request, env) {
