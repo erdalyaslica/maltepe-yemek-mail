@@ -1,3 +1,4 @@
+from panel_result import panel_only, write_result, person_summary
 import os
 import smtplib
 from datetime import date, datetime, timedelta
@@ -322,6 +323,8 @@ if __name__ == "__main__":
             mail_dosyasi = son_dosya
             print(f"En son kayıtlı listeyle devam ediliyor: {son_dosya}")
 
-    mail_gonder(menu, str(mail_dosyasi))
-    telegram_gunluk_gonder(menu, simdi)
+    write_result("yemek", status="success", summary="Kayıtlı yemek listesi.", sourceMonth=mail_dosyasi.stem, stale=not aya_ait_gecerli_mi(menu, simdi), menu=[{"date": tarihi_coz(k).isoformat() if tarihi_coz(k) else "", "day": k.get("gun", ""), "dishes": k.get("yemekler", []), "calories": k.get("kalori", "")} for k in menu])
+    if not panel_only():
+        mail_gonder(menu, str(mail_dosyasi))
+        telegram_gunluk_gonder(menu, simdi)
     print("Yemek listesi e-postası ve Telegram bildirimi gönderildi.")

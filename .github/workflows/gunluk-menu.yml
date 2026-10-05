@@ -5,6 +5,12 @@ on:
     - cron: "30 10 * * *"
       timezone: "Europe/Istanbul" # Her gün 10:30 Türkiye saati
   workflow_dispatch:
+    inputs:
+      panel_only:
+        description: "Panelde göster; bildirim gönderme ve karşılaştırma listesini değiştirme"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -17,6 +23,8 @@ jobs:
   menu-gonder:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      PANEL_ONLY: ${{ inputs.panel_only || 'false' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,3 +52,12 @@ jobs:
           else
             echo "Kaydedilecek yeni aylık liste yok."
           fi
+
+      - name: Panel sonucunu sakla
+        if: always() && hashFiles('panel-result.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: panel-result
+          path: panel-result.json
+          retention-days: 30
+          if-no-files-found: error
