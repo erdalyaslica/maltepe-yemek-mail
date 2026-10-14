@@ -2,8 +2,7 @@ name: Günlük yemek menüsü
 
 on:
   schedule:
-    - cron: "30 10 * * *"
-      timezone: "Europe/Istanbul" # Her gün 10:30 Türkiye saati
+    - cron: "0 6 * * 1-5" # Hafta içi her gün 09:00 TSİ (06:00 UTC)
   workflow_dispatch:
     inputs:
       panel_only:
