@@ -2,3 +2,8 @@ name = "maltepe-yemek-mail"
 main = "cloudflare/worker.js"
 compatibility_date = "2026-09-26"
 workers_dev = true
+
+# Günlük menü bildirimi: hafta içi 10:00 TSİ (07:00 UTC).
+# GitHub'ın kendi zamanlayıcısı saatlerce gecikebildiği için görev buradan başlatılır.
+[triggers]
+crons = ["0 7 * * MON-FRI"]

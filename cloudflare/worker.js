@@ -6,10 +6,28 @@ async function send(env, text) {
   });
   if (!r.ok || !(await r.json()).ok) throw new Error("Telegram gönderimi başarısız");
 }
+async function dispatch(env, workflow, inputs) {
+  const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`, {
+    method:"POST",
+    headers:{"Authorization":`Bearer ${env.GH_TOKEN}`,"Accept":"application/vnd.github+json","User-Agent":"maltepe-yemek-worker","Content-Type":"application/json"},
+    body:JSON.stringify(inputs ? {ref:"main",inputs} : {ref:"main"})
+  });
+  if (!r.ok) throw new Error("GitHub görevi başlatılamadı");
+}
 export function command(text) {
   return String(text || "").trim().replace(/^\/\s+/, "/").split(/\s+/)[0].split("@")[0].toLocaleLowerCase("tr");
 }
 export default {
+  // Cron tetikleyicisi (wrangler.toml): günlük menü görevini zamanında başlatır.
+  async scheduled(controller, env) {
+    try {
+      await dispatch(env, "gunluk-menu.yml");
+    } catch (e) {
+      console.error("Günlük menü görevi başlatılamadı");
+      try { await send(env, "⚠️ Günlük menü görevi başlatılamadı. GitHub ve Cloudflare bağlantı ayarlarını kontrol edin."); } catch {}
+      throw e;
+    }
+  },
   async fetch(request, env) {
     if (new URL(request.url).pathname !== "/telegram" || request.method !== "POST")
       return new Response("Not found", {status:404});
@@ -26,12 +44,7 @@ export default {
         await send(env, "✅ Yemek botunun Telegram bağlantısı çalışıyor.");
       } else if (["/bugün","/bugun","/yarın","/yarin","/hafta"].includes(c)) {
         const canonical = {"/bugün":"bugun","/bugun":"bugun","/yarın":"yarin","/yarin":"yarin","/hafta":"hafta"}[c];
-        const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/telegram-webhook.yml/dispatches`, {
-          method:"POST",
-          headers:{"Authorization":`Bearer ${env.GH_TOKEN}`,"Accept":"application/vnd.github+json","User-Agent":"maltepe-yemek-worker","Content-Type":"application/json"},
-          body:JSON.stringify({ref:"main",inputs:{command:canonical,requested_at:String(m.date || Math.floor(Date.now()/1000))}})
-        });
-        if (!r.ok) throw new Error("GitHub görevi başlatılamadı");
+        await dispatch(env, "telegram-webhook.yml", {command:canonical,requested_at:String(m.date || Math.floor(Date.now()/1000))});
         await send(env, "⏳ Menü isteğin alındı. GitHub'da hazırlanıyor; sonuç burada bildirilecek.");
       } else {
         await send(env, "🍽️ Maltepe Yemek Botu\n\n/bugun veya /bugün — Bugünün menüsü\n/yarin veya /yarın — Yarının menüsü\n/hafta — Haftanın menüsü (hafta sonunda gelecek hafta)\n/test — Bağlantı testi\n/yardim — Komutlar");

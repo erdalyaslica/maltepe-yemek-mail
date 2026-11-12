@@ -1,8 +1,13 @@
 name: Günlük yemek menüsü
+run-name: ${{ inputs.panel_only && 'Panel kontrolü (bildirimsiz)' || 'Günlük yemek menüsü' }}
 
 on:
+  # Asıl tetikleyici Cloudflare Worker'daki cron'dur (wrangler.toml, 10:00 TSİ);
+  # görevi workflow_dispatch ile başlatır. GitHub'ın zamanlayıcısı saatlerce
+  # gecikebildiği için buradaki schedule yalnızca yedektir: aynı gün bildirim
+  # zaten gönderildiyse tekrar göndermez.
   schedule:
-    - cron: "0 6 * * 1-5" # Hafta içi her gün 09:00 TSİ (06:00 UTC)
+    - cron: "17 7 * * 1-5" # Yedek: hafta içi 10:17 TSİ (07:17 UTC)
   workflow_dispatch:
     inputs:
       panel_only:
@@ -13,6 +18,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: maltepe-yemek-mail-writes
@@ -22,9 +28,21 @@ jobs:
   menu-gonder:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      PANEL_ONLY: ${{ inputs.panel_only || 'false' }}
     steps:
+      - name: Bugün bildirim gönderildi mi (yalnızca yedek zamanlayıcı)
+        id: kontrol
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bugun="$(TZ=Europe/Istanbul date +%F)"
+          adet="$(gh api -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/gunluk-menu.yml/runs" \
+            -f status=success -f per_page=50 -f created=">=${bugun}T00:00:00+03:00" \
+            --jq '[.workflow_runs[] | select(.display_title == "Günlük yemek menüsü")] | length' || echo 0)"
+          if [[ "$adet" -gt 0 ]]; then
+            echo "Bugünün bildirimi zaten gönderilmiş; tekrar gönderilmeyecek."
+            echo "gonderildi=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -33,6 +51,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Menüyü çek ve gönder
         env:
+          PANEL_ONLY: ${{ inputs.panel_only || steps.kontrol.outputs.gonderildi || 'false' }}
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}

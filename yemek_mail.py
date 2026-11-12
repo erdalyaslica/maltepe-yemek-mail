@@ -327,4 +327,6 @@ if __name__ == "__main__":
     if not panel_only():
         mail_gonder(menu, str(mail_dosyasi))
         telegram_gunluk_gonder(menu, simdi)
-    print("Yemek listesi e-postası ve Telegram bildirimi gönderildi.")
+        print("Yemek listesi e-postası ve Telegram bildirimi gönderildi.")
+    else:
+        print("Bildirim gönderilmedi (panel kontrolü veya bugün zaten gönderilmiş).")

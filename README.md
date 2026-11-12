@@ -1,6 +1,6 @@
 #günlük yemek menüsü
 
-Her gün Türkiye saatiyle 10.00'da yemek listesini kontrol eder, Excel dosyası
+Hafta içi her gün Türkiye saatiyle 10.00'da yemek listesini kontrol eder, Excel dosyası
 oluşturur ve Gmail üzerinden e-posta gönderir.
 
 Hafta içi e-postasında günün menüsü ve haftanın kalan iş günleri yer alır.
@@ -40,9 +40,14 @@ komutları kontrol eder.
 
 ## Zamanlama
 
-GitHub cron zamanları UTC'dir. Türkiye saati yıl boyunca UTC+3 olduğundan
-`0 7 * * *`, her gün 10.00 anlamına gelir.
+Günlük bildirim hafta içi Türkiye saatiyle 10.00'da gönderilir. GitHub'ın kendi
+zamanlayıcısı (`schedule`) yoğunlukta saatlerce gecikebildiği için görevi
+Cloudflare Worker'daki cron tetikleyicisi başlatır (`wrangler.toml`,
+`0 7 * * MON-FRI`; cron zamanları UTC'dir, Türkiye UTC+3'tür). Saati değiştirmek
+için bu satır düzenlenip Worker yeniden yayımlanır (`npx wrangler deploy`).
 
+Workflow'daki `schedule` yalnızca yedektir: Worker görevi başlatamazsa bildirim
+yine gönderilir; o gün zaten gönderildiyse yedek çalışma tekrar göndermez.
 
 ## Telegram
 
